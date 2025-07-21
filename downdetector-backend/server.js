@@ -3,9 +3,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-// 🆕 Load scheduled cron job for alerts
-require('./cron/schedule');
-
 const outageRoutes = require('./routes/outages');
 const subRoutes = require('./routes/subscriptions');
 
@@ -27,13 +24,14 @@ app.get('/', (req, res) => {
 
 // MongoDB connection
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
-    // ✅ Listen on all interfaces for Render compatibility
+
+    // ✅ Start cron job AFTER DB connection is ready
+    require('./cron/schedule');
+
+    // ✅ Listen on all interfaces (Render-compatible)
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
     });
